@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';

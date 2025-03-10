@@ -5,7 +5,7 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
-import MDXContent from '@/components/mdx-content';
+import { MarkdownContent as MDXContent } from '@/components/markdown-content';
 
 // 동적 렌더링 사용
 export const dynamic = 'force-dynamic';
