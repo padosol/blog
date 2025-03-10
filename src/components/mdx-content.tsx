@@ -10,7 +10,7 @@ import type {
   AnchorHTMLAttributes
 } from 'react';
 
-interface MarkdownContentProps {
+interface MDXContentProps {
   source: MDXRemoteSerializeResult;
 }
 
@@ -58,7 +58,7 @@ const components = {
   },
 };
 
-export function MarkdownContent({ source }: MarkdownContentProps) {
+export default function MDXContent({ source }: MDXContentProps) {
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
       <MDXRemote {...source} components={components} />

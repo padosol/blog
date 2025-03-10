@@ -25,11 +25,11 @@ export function Header() {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <ModeToggle />
-          <Button variant="outline" size="sm" asChild className="hidden md:flex">
+          {/* <Button variant="outline" size="sm" asChild className="hidden md:flex">
             <Link href="/contact">문의하기</Link>
-          </Button>
+          </Button> */}
         </div>
       </div>
     </header>

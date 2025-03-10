@@ -5,7 +5,10 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
-import { MarkdownContent } from "@/components/markdown-content";
+import MDXContent from '@/components/mdx-content';
+
+// 동적 렌더링 사용
+export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -14,8 +17,13 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
   
   if (!post) {
     return {
@@ -30,9 +38,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
+interface PostPageProps {
+  params: Promise<{ slug: string }>;
+};
+
+export default async function PostPage({ params }: PostPageProps) {
   try {
-    const post = getPostBySlug(params.slug);
+    const { slug } = await params;
+    const post = getPostBySlug(slug);
     
     if (!post) {
       notFound();
@@ -69,7 +82,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
           <Separator className="my-8" />
 
-          <MarkdownContent source={mdxSource} />
+          <MDXContent source={mdxSource} />
         </div>
       </div>
     );
