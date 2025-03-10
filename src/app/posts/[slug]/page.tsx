@@ -5,7 +5,8 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
-import { MarkdownContent as MDXContent } from '@/components/markdown-content';
+import MDXContent from '@/components/mdx-content';
+import type { Metadata } from 'next';
 
 // 동적 렌더링 사용
 export const dynamic = 'force-dynamic';
@@ -17,11 +18,14 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
+type Props = {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata(
+  { params }: Props
+): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   
@@ -40,7 +44,7 @@ export async function generateMetadata({
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
-};
+}
 
 export default async function PostPage({ params }: PostPageProps) {
   try {
