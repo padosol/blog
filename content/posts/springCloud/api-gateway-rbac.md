@@ -1,0 +1,155 @@
+---
+title: "[Spring Cloud] API Gateway를 사용한 RBAC 구현"
+description: "Spring Cloud Gateway를 활용하여 Spring Security 없이 역할 기반 접근 제어(RBAC)를 구현하는 방법을 알아봅니다."
+date: "2025-03-17"
+category: "springCloud"
+slug: "api-gateway-rbac"
+---
+
+# API Gateway를 사용한 역할 기반 접근 제어(RBAC) 구현
+
+## 배경
+
+MSA(Microservice Architecture) 프로젝트를 진행하면서 사용자 역할(Role)에 따른 API 접근 제어가 필요했습니다. 구체적으로는 USER와 ADMIN 권한에 따라 특정 API의 사용 여부를 제어해야 했습니다.
+
+## 일반적인 접근 방식: Spring Security
+
+Spring 기반 애플리케이션에서는 일반적으로 Spring Security를 사용하여 역할 기반 접근 제어를 구현합니다.
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf().disable() // CSRF 비활성화 (필요에 따라 활성화 가능)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/admin/**").hasRole("ADMIN") // ADMIN 권한만 접근 가능
+                .requestMatchers("/api/user/**").hasRole("USER")   // USER 권한만 접근 가능
+                .anyRequest().authenticated()                      // 그 외 요청은 인증 필요
+            )
+            .httpBasic(); // HTTP Basic 인증 사용
+
+        return http.build();
+    }
+}
+```
+
+## 문제점
+
+하지만 MSA 환경에서 Spring Security를 사용하면 다음과 같은 문제가 있습니다:
+
+1. **중복 구현**: 모든 마이크로서비스에 Spring Security 설정을 반복해서 적용해야 함
+2. **유지보수 어려움**: 접근 제어 정책이 변경될 때 모든 서비스를 수정해야 함
+3. **일관성 유지 어려움**: 여러 서비스에 동일한 보안 정책을 적용하기 어려움
+
+## 해결책: API Gateway를 통한 중앙화된 RBAC
+
+이러한 문제를 해결하기 위해 API Gateway에서 RBAC(Role-Based Access Control)를 구현하기로 결정했습니다. 
+
+이 방식의 장점은:
+
+1. **중앙화된 접근 제어**: 모든 요청이 Gateway를 통과하므로 한 곳에서 관리 가능
+2. **마이크로서비스 단순화**: 각 서비스는 인증/인가 로직을 구현할 필요 없음
+3. **유지보수 용이성**: 접근 제어 정책 변경 시 Gateway만 수정하면 됨
+
+## 구현 방법
+
+### 1. API Gateway 설정 (application.yml)
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        # Community 서비스 라우팅 설정
+        - id: community-service
+          uri: lb://COMMUNITY-SERVICE
+          predicates:
+            - Path=/community-service/topics
+            - Method=POST,PUT,DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/community-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+              args:
+                requiredRole: ADMIN
+```
+
+위 설정에서 중요한 부분은 `filters` 섹션의 `AuthorizationFilter`입니다. `args`로 `requiredRole: ADMIN`을 전달하여 해당 경로는 ADMIN 권한을 가진 사용자만 접근할 수 있도록 설정했습니다.
+
+### 2. 커스텀 AuthorizationFilter 구현
+
+```java
+@Component
+public class AuthorizationFilter extends AbstractGatewayFilterFactory<AuthorizationFilter.Config> {
+
+    public AuthorizationFilter() {
+        super(Config.class);
+    }
+
+    public static class Config {
+        private String requiredRole;
+
+        public String getRequiredRole() {
+            return requiredRole;
+        }
+
+        public void setRequiredRole(String requiredRole) {
+            this.requiredRole = requiredRole;
+        }
+    }
+
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            
+            // JWT 토큰 추출 및 검증 로직 (생략)
+            
+            // 필요한 권한 확인
+            String requiredRole = config.getRequiredRole();
+            if (StringUtils.hasText(requiredRole)) {
+                Claims claims = getClaims(jwt);
+                String auths = (String) claims.get("auth");
+                List<String> authList = Arrays.stream(auths.split(",")).toList();
+                
+                // 권한 검사
+                if (!authList.contains(requiredRole)) {
+                    return onError(
+                            exchange,
+                            String.format("%s 권한이 없습니다.", requiredRole),
+                            HttpStatus.UNAUTHORIZED
+                    );
+                }
+            }
+
+            return chain.filter(exchange);
+        };
+    }
+    
+    // 에러 처리 메서드 (생략)
+    // JWT 클레임 추출 메서드 (생략)
+}
+```
+
+이 필터는 다음과 같이 동작합니다:
+
+1. Gateway 설정에서 전달된 `requiredRole` 값을 가져옴
+2. 요청에서 JWT 토큰을 추출하고 검증
+3. JWT에서 사용자 권한 목록을 가져와 필요한 권한이 있는지 확인
+4. 권한이 없으면 401 Unauthorized 응답 반환, 있으면 요청을 다음 필터로 전달
+
+## 결론
+
+Spring Cloud Gateway와 커스텀 필터를 사용하여 중앙화된 RBAC를 구현함으로써:
+
+1. 각 마이크로서비스에 Spring Security를 적용할 필요가 없어짐
+2. 권한 관리가 한 곳에서 이루어져 유지보수가 용이해짐
+3. 일관된 보안 정책을 모든 서비스에 적용할 수 있게 됨
+
+이 방식은 MSA 환경에서 인증/인가를 효율적으로 관리하는 좋은 패턴이 될 수 있습니다.
+
+

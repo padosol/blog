@@ -7,7 +7,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between max-w-5xl mx-auto">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl">My Blog</span>
+            <span className="font-bold text-xl">Padosol Blog</span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link

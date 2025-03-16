@@ -2,8 +2,7 @@
 title: "AWS 시작하기: 클라우드 컴퓨팅의 첫걸음"
 description: "AWS(Amazon Web Services) 입문자를 위한 기초 가이드. AWS 계정 생성부터 주요 서비스 소개까지 알아봅니다."
 date: "2023-06-22"
-category: "인프라라"
-readTime: "8분"
+category: "인프라"
 slug: "nextjs-14-features"
 ---
 

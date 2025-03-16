@@ -3,7 +3,6 @@ title: "Tailwind CSS로 반응형 웹 디자인 구현하기"
 description: "Tailwind CSS를 사용하여 모바일부터 데스크탑까지 완벽하게 대응하는 반응형 웹 디자인을 구현하는 방법을 알아봅니다."
 date: "2023-05-15"
 category: "웹 개발"
-readTime: "5분"
 slug: "tailwind-responsive-design"
 ---
 

@@ -11,7 +11,7 @@ export default function Home() {
       <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32 text-center">
         <div className="flex max-w-[980px] flex-col items-center mx-auto gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl lg:leading-[1.1]">
-            개발과 디자인에 관한 <br />
+            DevOps 에 관한 <br />
             모든 이야기
           </h1>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">

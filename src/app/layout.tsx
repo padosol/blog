@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Blog - 개인 블로그",
+  title: "Padosol Blog - 개인 블로그",
   description: "Tailwind CSS와 shadcn/ui로 만든 개인 블로그",
 };
 

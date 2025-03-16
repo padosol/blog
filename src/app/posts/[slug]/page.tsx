@@ -5,7 +5,7 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
-import MDXContent from '@/components/mdx-content';
+import { MarkdownContent as MDXContent } from '@/components/markdown-content';
 import type { Metadata } from 'next';
 
 // 동적 렌더링 사용
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export async function generateStaticParams() {
   const posts = getAllPosts();
   return posts.map((post) => ({
-    slug: post.metadata.slug,
+    slug: post!.metadata.slug,
   }));
 }
 
@@ -61,6 +61,19 @@ export default async function PostPage({ params }: PostPageProps) {
       },
     });
 
+    // 카테고리 이름을 표시용으로 변환
+    const categoryDisplayNames: Record<string, string> = {
+      aws: 'AWS',
+      nextjs: 'Next.js',
+      design: '디자인',
+      development: '개발'
+    };
+
+    // 카테고리 경로가 있으면 해당 카테고리의 표시 이름을 사용, 없으면 원래 카테고리 이름 사용
+    const displayCategory = post.metadata.categoryPath 
+      ? (categoryDisplayNames[post.metadata.categoryPath] || post.metadata.categoryPath)
+      : post.metadata.category;
+
     return (
       <div className="container py-8 md:py-12 max-w-5xl mx-auto">
         <div className="mx-auto max-w-3xl">
@@ -72,7 +85,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
           <div className="space-y-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>{post.metadata.category}</span>
+              <span>{displayCategory}</span>
               <span>•</span>
               <span>{post.metadata.date}</span>
               <span>•</span>
