@@ -1,150 +1,91 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { Post, PostMatter } from '@/config/types';
+import dayjs from 'dayjs';
+import readingTime from 'reading-time';
+import { sync } from 'glob';
 
-const postsDirectory = path.join(process.cwd(), 'content/posts');
+const BASE_PATH = 'content/posts';
+const POSTS_PATH = path.join(process.cwd(), BASE_PATH);
 
-export type PostMetadata = {
-  title: string;
-  description: string;
-  date: string;
-  category: string;
-  readTime?: string;
-  slug: string;
-  categoryPath?: string;
+// MDX 파일 파싱 : abstract / detail 구분
+const parsePost = async (postPath: string): Promise<Post> => {
+  const postAbstract = parsePostAbstract(postPath);
+  const postDetail = await parsePostDetail(postPath);
+
+  return { 
+    ...postAbstract, 
+    ...postDetail 
+  };      
 };
 
-export type Category = {
-  name: string;
-  path: string;
-  count: number;
-};
-
-/**
- * 텍스트 내용을 기반으로 읽는 시간을 계산합니다.
- * @param content 포스트 내용
- * @param wordsPerMinute 분당 읽는 단어 수 (한국어는 분당 약 500자)
- * @returns 읽는 시간 (분 단위)
- */
-export function calculateReadingTime(content: string, wordsPerMinute = 500): string {
-  // 마크다운 문법 제거 (대략적인 방법)
-  const cleanText = content
-    .replace(/#+\s+/g, '') // 제목 태그 제거
-    .replace(/!\[.*?\]\(.*?\)/g, '') // 이미지 태그 제거
-    .replace(/\[.*?\]\(.*?\)/g, '') // 링크 태그 제거
-    .replace(/`{1,3}.*?`{1,3}/g, '') // 코드 블록 제거
-    .replace(/\*\*.*?\*\*/g, '') // 볼드체 제거
-    .replace(/\*.*?\*/g, '') // 이탤릭체 제거
-    .replace(/~~.*?~~/g, '') // 취소선 제거
-    .replace(/>\s+.*/g, ''); // 인용구 제거
-
-  // 한국어 텍스트의 경우 공백을 제외한 글자 수로 계산
-  const charCount = cleanText.replace(/\s+/g, '').length;
-  
-  // 읽는 시간 계산 (분 단위)
-  const minutes = Math.ceil(charCount / wordsPerMinute);
-  
-  // 최소 1분으로 설정
-  return `${Math.max(1, minutes)}분`;
-}
-
-export function getAllCategories(): Category[] {
-  const categoryFolders = fs.readdirSync(postsDirectory, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
-  
-  const categories: Category[] = categoryFolders.map(folder => {
-    const categoryPath = path.join(postsDirectory, folder);
-    const postCount = fs.readdirSync(categoryPath).filter(file => file.endsWith('.md')).length;
+export const parsePostAbstract = (postPath: string) => {
+  const normalizedPath = postPath.split(path.sep).join('/');
+  const filePath = normalizedPath
+    .slice(normalizedPath.indexOf(BASE_PATH))
+    .replace(`${BASE_PATH}/`, '')
+    .replace('.mdx', '');
     
-    return {
-      name: folder,
-      path: folder,
-      count: postCount
-    };
-  });
+  const [category, slug] = filePath.split('/');
   
-  return categories;
-}
+  const url = `/blog/${category}/${slug}`;
 
-export function getPostSlugsByCategory(category: string) {
-  const categoryPath = path.join(postsDirectory, category);
-  if (!fs.existsSync(categoryPath)) return [];
-  
-  return fs.readdirSync(categoryPath).filter(file => file.endsWith('.md'));
-}
-
-export function getPostSlugs() {
-  const categories = getAllCategories();
-  let allSlugs: { slug: string, category: string }[] = [];
-  
-  categories.forEach(category => {
-    const slugs = getPostSlugsByCategory(category.path);
-    const categorySlugPairs = slugs.map(slug => ({
-      slug,
-      category: category.path
-    }));
-    
-    allSlugs = [...allSlugs, ...categorySlugPairs];
-  });
-  
-  return allSlugs;
-}
-
-export function getPostBySlugAndCategory(slug: string, category: string) {
-  const realSlug = slug.replace(/\.md$/, '');
-  const fullPath = path.join(postsDirectory, category, `${slug}`);
-  
-  if (!fs.existsSync(fullPath)) return null;
-  
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data, content } = matter(fileContents);
-  
-  // 읽는 시간 동적 계산
-  const readTime = data.readTime || calculateReadingTime(content);
-  
   return {
-    slug: realSlug,
-    metadata: { 
-      ...data, 
-      categoryPath: category,
-      readTime
-    } as PostMetadata,
-    content,
+    url,
+    category,
+    slug,
   };
-}
+};
 
-export function getPostBySlug(slug: string) {
-  const categories = getAllCategories();
-  
-  for (const category of categories) {
-    const slugs = getPostSlugsByCategory(category.path);
-    const matchingSlug = slugs.find(s => s.includes(slug));
-    
-    if (matchingSlug) {
-      return getPostBySlugAndCategory(matchingSlug, category.path);
-    }
-  }
-  
-  return null;
-}
+// MDX 상세정보
+const parsePostDetail = async (postPath: string) => {
+  const file = fs.readFileSync(postPath, 'utf8');
+  const { data, content } = matter(file);
+  const grayMatter = data as PostMatter;
+  const readingMinutes = Math.ceil(readingTime(content).minutes);
+  const dateString = dayjs(grayMatter.date).locale('ko').format('YYYY년 MM월 DD일');
+  return { 
+    ...grayMatter, 
+    dateString, 
+    content, 
+    readingMinutes 
+  };
+};
 
-export function getAllPosts() {
-  const slugPairs = getPostSlugs();
-  const posts = slugPairs
-    .map(({ slug, category }) => getPostBySlugAndCategory(slug, category))
-    .filter(post => post !== null)
-    .sort((post1, post2) => (post1!.metadata.date > post2!.metadata.date ? -1 : 1));
-  
-  return posts as ReturnType<typeof getPostBySlugAndCategory>[];
-}
+// 모든 MDX 파일 조회
+export const getPostPaths = (category?: string) => {
+  const folder = category || '**';
+  const paths: string[] = sync(`${POSTS_PATH}/${folder}/*.mdx`);
+  return paths;
+};
+ 
+// 모든 포스트 목록 조회
+export const getPostList = async (category?: string): Promise<Post[]> => {
+  const paths: string[] = getPostPaths(category);
+  const posts = await Promise.all(paths.map((postPath) => parsePost(postPath)));
+  return posts;
+};
 
-export function getPostsByCategory(category: string) {
-  const slugs = getPostSlugsByCategory(category);
-  const posts = slugs
-    .map(slug => getPostBySlugAndCategory(slug, category))
-    .filter(post => post !== null)
-    .sort((post1, post2) => (post1!.metadata.date > post2!.metadata.date ? -1 : 1));
+// 모든 카테고리 조회
+export const getCategories = async (): Promise<string[]> => {
+  const catePaths: string[] = sync(`${POSTS_PATH}/*`);
   
-  return posts as ReturnType<typeof getPostBySlugAndCategory>[];
-} 
+  const categories = catePaths.map((catePath) => {
+    const category = catePath.split(path.sep).pop() as string;
+    const postCount = sync(`${POSTS_PATH}/${category}/*.mdx`).length;
+    return `${category}(${postCount})`
+  });
+
+  return categories;
+};
+
+// slug 와 tag 로 포스트 조회
+export const getPostByCategoryAndSlug = async (category: string, slug: string) => {
+  const postPath = `${POSTS_PATH}/${category}/${slug}.mdx`;
+  const post = await parsePost(postPath);
+  return post;
+};
+
+// 스네이크 케이스로 작성된 카테고리명을 기본 문자로 변환
+export const convertCategoryToDefault = (category: string) => category.split('_').map(word => word[0].toUpperCase() + word.slice(1, word.length)).join(' ');
