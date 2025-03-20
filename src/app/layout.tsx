@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
-
+import { Footer } from "@/components/footer";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Padosol Blog - 개인 블로그",
-  description: "Tailwind CSS와 shadcn/ui로 만든 개인 블로그",
+  description: "Padosol 기술 블로그",
 };
 
 export default function RootLayout({
@@ -35,10 +35,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative flex min-h-screen flex-col items-center">
-            <Header />
-            <main className="flex-1 w-full">{children}</main>
-          </div>
+          <Header />
+          <section className="mx-auto mt-12 w-full max-w-[850px] px-4">
+            <main className="flex flex-1 flex-col">{children}</main>
+          </section>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
