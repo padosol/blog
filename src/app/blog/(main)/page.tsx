@@ -1,20 +1,20 @@
 import { getCategories, getPostList } from "@/lib/mdx";
 import PostList from "@/components/post/post-list";
 import { Post } from "@/config/types";
+import CategoryList from "@/components/category/category-list";
 
 export default async function BlogMainPage() {
   const posts: Post[] = await getPostList();
   const categories = await getCategories();
 
   return (
-    <div>
-      <h1>Home</h1>
-      <ul>
-        {categories.map((category) => (
-          <li key={category}>{category}</li>
-        ))}
-      </ul>
-      <PostList posts={posts} />
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="md:col-span-1">
+        <CategoryList categories={categories} />
+      </div>
+      <div className="md:col-span-3">
+        <PostList posts={posts} />
+      </div>
     </div>
   );
 }

@@ -68,13 +68,16 @@ export const getPostList = async (category?: string): Promise<Post[]> => {
 };
 
 // 모든 카테고리 조회
-export const getCategories = async (): Promise<string[]> => {
+export const getCategories = async (): Promise<{ category: string; postCount: number }[]> => {
   const catePaths: string[] = sync(`${POSTS_PATH}/*`);
   
   const categories = catePaths.map((catePath) => {
     const category = catePath.split(path.sep).pop() as string;
     const postCount = sync(`${POSTS_PATH}/${category}/*.mdx`).length;
-    return `${category}(${postCount})`
+    return {
+      category,
+      postCount,
+    }
   });
 
   return categories;
