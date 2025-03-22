@@ -10,6 +10,7 @@ import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 
 import { MdxComponents } from "@/components/mdx";
+import Giscus from "@/components/git/Giscus";
 
 interface PostPageProps {
   params: Promise<{ 
@@ -47,6 +48,8 @@ export default async function PostPage({
           }
         }}
       />
+
+      <Giscus />
     </div>
 
   );
