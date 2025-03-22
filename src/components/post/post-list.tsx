@@ -67,3 +67,4 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
     </div>
   );
 }
+
