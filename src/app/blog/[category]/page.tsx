@@ -18,7 +18,7 @@ export default async function BlogMainPage({
         <CategoryList categories={categories} />
       </div>
       <div className="md:col-span-3">
-        <PostList posts={posts} />
+        <PostList posts={posts} category={category} />
       </div>
     </div>
   );
