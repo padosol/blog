@@ -83,4 +83,13 @@ export const getCategories = async (): Promise<{ category: string; postCount: nu
   return categories;
 };
 
- 
+// slug 와 tag 로 포스트 조회
+export const getPostByCategoryAndSlug = async (category: string, slug: string) => {
+  const postPath = `${POSTS_PATH}/${category}/${slug}.mdx`;
+  const post = await parsePost(postPath);
+  return post;
+};
+
+// 스네이크 케이스로 작성된 카테고리명을 기본 문자로 변환
+export const convertCategoryToDefault = (category: string) => category.split('_').map(word => word[0].toUpperCase() + word.slice(1, word.length)).join(' ');
+
