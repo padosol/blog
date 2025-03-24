@@ -12,7 +12,7 @@ export function Header() {
             <span className="font-bold text-xl">Padosol Blog</span>
           </Link>
         </div>
-        <div className="flex items-center w-1/8">
+        <div className="flex items-center">
           <ModeToggle />
         </div>
       </div>
