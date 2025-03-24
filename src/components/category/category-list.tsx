@@ -4,11 +4,12 @@ import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { CategoryDetail } from "@/config/types";
 
 export default function CategoryList({
   categories,
 }: {
-  categories: { category: string; postCount: number }[];
+  categories: CategoryDetail[];
 }) {
   const pathname = usePathname();
   const totalCount = categories.reduce((acc, category) => acc + category.postCount, 0);
@@ -50,7 +51,7 @@ export default function CategoryList({
                     : "hover:text-primary hover:bg-gray-300"
                 )}
               >
-                {category.category} <span className="text-muted-foreground">({category.postCount})</span>
+                {category.categoryName} <span className="text-muted-foreground">({category.postCount})</span>
               </Link>
             </li>
           ))}

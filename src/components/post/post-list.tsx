@@ -2,8 +2,9 @@ import { Post } from "@/config/types";
 import Link from "next/link";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { convertCategoryToDefault } from "@/lib/mdx";
 
-export default function PostList({posts, category}: {posts: Post[], category?: string}) {
+export default function PostList({posts, category}: {posts: Post[], category?: string | null}) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-10">
@@ -12,11 +13,9 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
     );
   }
 
-  const displayTitle = category ? category.charAt(0).toUpperCase() + category.slice(1) : "All";
-
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold mb-6">{displayTitle}</h2>
+      <h2 className="text-2xl font-bold mb-6">{convertCategoryToDefault(category)}</h2>
       <ul className="space-y-6">
         {posts.map((post) => (
           <li key={post.slug}>
@@ -34,10 +33,10 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
                       )}
                     </CardHeader>
                     <CardFooter className="flex items-center gap-2 text-sm text-muted-foreground mt-auto">
-                      {post.dateString && <time dateTime={post.dateString}>{post.dateString}</time>}
                       {post.category && (
-                        <span className="bg-muted px-2 py-1 rounded-md">{post.category}</span>
+                        <span className="bg-muted px-2 py-1 rounded-md">{convertCategoryToDefault(post.category)}</span>
                       )}
+                      {post.dateString && <time dateTime={post.dateString}>{post.dateString}</time>}
                     </CardFooter>
                   </div>
                   <div className="w-full md:w-1/4 h-[140px] md:h-auto relative bg-muted flex items-center justify-center">
@@ -46,7 +45,7 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
                         src={post.thumbnail}
                         alt={post.title}
                         fill
-                        className="object-cover"
+                        className="object-cover p-2"
                       />
                     ) : (
                       <div className="text-muted-foreground text-sm flex items-center justify-center h-full">

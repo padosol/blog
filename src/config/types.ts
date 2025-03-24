@@ -15,9 +15,9 @@ export interface Post extends PostMatter {
 }
 
 export interface CategoryDetail {
-  dirName: string;
-  publicName: string;
-  count: number;
+  category: string; 
+  postCount: number, 
+  categoryName: string
 }
 
 export interface HeadingItem {
