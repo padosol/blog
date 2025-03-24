@@ -1,6 +1,12 @@
 import { getPostByCategoryAndSlug } from "@/lib/mdx";
+import type { Metadata } from "next";
 
 import PostContent from "@/components/post/post-content";
+
+
+export const metadata: Metadata = {
+  title: "title"
+}
 
 interface PostPageProps {
   params: Promise<{ 

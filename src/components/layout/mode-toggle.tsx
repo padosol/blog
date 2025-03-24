@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
@@ -13,18 +12,16 @@ export function ModeToggle() {
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <div
       onClick={toggleTheme}
       aria-label="테마 변경"
-      className="rounded-full w-9 h-9 hover:bg-muted cursor-pointer"
+      className="rounded-full cursor-pointer w-full h-full"
     >
       {
         theme === 'light' 
-        ? (<Sun />) 
-        : (<Moon />)
+        ? (<Sun size={24} />) 
+        : (<Moon size={24} />)
       }
-    </Button>
+    </div>
   );
 } 

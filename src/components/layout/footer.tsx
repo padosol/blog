@@ -8,14 +8,14 @@ export const Footer = () => {
       <div className='flex justify-center gap-4'>
         <Link href='https://github.com/padosol' target='_blank'>
           <IconGithub
-            className='fill-foreground transition hover:fill-pink-600'
+            className='fill-foreground transition hover:fill-yellow-600'
             height={30}
             width={30}
           />
         </Link>
       </div>
       <div>
-        © 2024. <span className='font-semibold'>Padosol</span> all rights reserved.
+        © 2024. <Link href='https://github.com/padosol' target='_blank' className='font-semibold hover:text-yellow-600 cursor-pointer'>Padosol</Link> all rights reserved.
       </div>
     </footer>
   );
