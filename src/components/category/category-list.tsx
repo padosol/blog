@@ -8,12 +8,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { CategoryDetail } from "@/config/types";
 
-
-const tags = Array.from({ length: 50 }).map(
-  (_, i, a) => `v1.2.0-beta.${a.length - i}`
-)
-
-
 export default function CategoryList({
   categories,
 }: {
