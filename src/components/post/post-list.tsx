@@ -44,8 +44,9 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
                       <Image 
                         src={post.thumbnail}
                         alt={post.title}
-                        fill
                         className="object-cover p-2"
+                        fill
+                        sizes="12"
                       />
                     ) : (
                       <div className="text-muted-foreground text-sm flex items-center justify-center h-full">
