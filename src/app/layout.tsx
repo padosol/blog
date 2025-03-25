@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/config/provider/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { GoogleAnalytics } from '@next/third-parties/google'
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,7 +33,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
@@ -41,6 +43,7 @@ export default function RootLayout({
           </section>
           <Footer />
         </ThemeProvider>
+        <GoogleAnalytics gaId="G-3DTT6CGCG8" />
       </body>
     </html>
   );
