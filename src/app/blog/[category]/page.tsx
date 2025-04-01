@@ -4,7 +4,7 @@ import { getCategories } from "@/lib/mdx";
 export async function generateStaticParams() {
   const categories = await getCategories();
   return categories.map((category) => ({
-    category,
+    category: category.category,
   }));
 }
 
