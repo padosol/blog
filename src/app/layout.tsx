@@ -29,9 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
-      >
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
