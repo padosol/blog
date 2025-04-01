@@ -1,11 +1,17 @@
 import { getPostByCategoryAndSlug } from "@/lib/mdx";
 import type { Metadata } from "next";
+import { getPostPaths, parsePostAbstract } from "@/lib/mdx";
 
 import PostContent from "@/components/post/post-content";
 
 
-export const metadata: Metadata = {
-  title: "title"
+
+export async function generateStaticParams() {
+  const postPaths: string[] = getPostPaths();
+  const paramList = postPaths
+    .map((path) => parsePostAbstract(path))
+    .map((item) => ({ category: item.category, slug: item.slug }));
+  return paramList;
 }
 
 interface PostPageProps {

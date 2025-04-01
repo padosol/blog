@@ -34,7 +34,9 @@ export default function PostContent({
             rehypePlugins: [
               [
                 rehypePrettyCode,
-                {theme: {dark: 'github-dark-dimmed', light: 'github-light'}},
+                {
+                  theme: "github-dark-dimmed"
+                },
               ],
               rehypeSlug,
             ],

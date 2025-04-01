@@ -3,4 +3,194 @@ title: "manifast 파일 구조 및 작성방법"
 description: "쿠버네티스에서 manifast 파일의 구조와 작성방법에 대해서 알아보겠습니다."
 date: "2025-03-17"
 thumbnail: /thumbnail/kubernetes.png
+category: "kubernetes"
 ---
+
+쿠버네티스(Kubernetes)에서 가장 기본이 되는 Manifest 파일의 구조와 작성방법에 대해 알아보겠습니다.
+
+## Manifest 파일이란?
+
+Manifest 파일은 쿠버네티스 클러스터에 배포하고자 하는 객체(Object)를 정의하는 파일입니다. YAML 또는 JSON 형식으로 작성할 수 있으며, 일반적으로 YAML 형식을 더 많이 사용합니다.
+
+## Manifest 파일의 기본 구성요소
+
+모든 Manifest 파일은 다음 4가지 필수 요소로 구성됩니다:
+
+```yaml
+apiVersion: apps/v1     # API 버전
+kind: Deployment       # 리소스 종류
+metadata:             # 메타데이터
+  name: nginx         # 리소스 이름
+spec:                # 리소스 상세 명세
+```
+
+### 1. apiVersion
+- 사용하고자 하는 쿠버네티스 API 버전을 명시
+- 리소스 종류에 따라 사용하는 apiVersion이 다름
+- 주요 apiVersion:
+  - v1: Pod, Service, ConfigMap, Secret
+  - apps/v1: Deployment, ReplicaSet, StatefulSet, DaemonSet
+  - networking.k8s.io/v1: Ingress
+  - batch/v1: Job, CronJob
+
+### 2. kind
+- 생성하고자 하는 리소스의 종류를 지정
+- 주요 리소스 종류:
+  - Pod: 컨테이너 실행의 기본 단위
+  - Deployment: Pod 복제본 관리
+  - Service: Pod 네트워크 서비스
+  - ConfigMap: 설정 정보 관리
+  - Secret: 민감한 정보 관리
+  - PersistentVolume: 영구 저장소
+  - PersistentVolumeClaim: 영구 저장소 요청
+
+### 3. metadata
+- 리소스를 식별하기 위한 정보를 포함
+- 필수 정보:
+  ```yaml
+  metadata:
+    name: my-app        # 리소스 이름
+    namespace: default  # 네임스페이스 (생략 시 default)
+    labels:            # 리소스 식별을 위한 레이블
+      app: my-app
+      tier: frontend
+    annotations:       # 추가 메타데이터
+      description: "프론트엔드 애플리케이션"
+  ```
+
+### 4. spec
+- 리소스의 desired state(원하는 상태)를 정의
+- 리소스 종류마다 다른 스펙을 가짐
+
+## 주요 리소스별 Manifest 예제
+
+### 1. Pod
+가장 기본적인 배포 단위입니다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+    resources:           # 리소스 제한 설정
+      requests:         # 최소 필요 리소스
+        memory: "64Mi"
+        cpu: "250m"
+      limits:          # 최대 사용 가능 리소스
+        memory: "128Mi"
+        cpu: "500m"
+```
+
+### 2. Deployment
+Pod의 복제본을 관리하고 업데이트 전략을 정의합니다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate    # 업데이트 전략
+    rollingUpdate:
+      maxSurge: 1         # 최대 초과 Pod 수
+      maxUnavailable: 0   # 최대 불가용 Pod 수
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+```
+
+### 3. Service
+Pod에 대한 네트워크 접근 방식을 정의합니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP    # Service 타입 (ClusterIP, NodePort, LoadBalancer)
+```
+
+#### Service 타입 설명
+- **ClusterIP**: 클러스터 내부에서만 접근 가능한 가상 IP 할당
+- **NodePort**: 모든 노드의 특정 포트를 통해 접근 가능
+- **LoadBalancer**: 클라우드 제공자의 로드밸런서를 통해 외부 접근 가능
+
+## Manifest 작성 시 주의사항
+
+1. **YAML 문법**
+   - 들여쓰기는 반드시 스페이스를 사용
+   - 들여쓰기 크기는 2칸 권장
+   - 콜론(:) 뒤에는 반드시 공백이 필요
+
+2. **이름 규칙**
+   - 리소스 이름은 DNS 서브도메인 규칙을 따름
+   - 영문 소문자, 숫자, 하이픈(-)만 사용 가능
+   - 최대 253자까지 허용
+
+3. **레이블과 셀렉터**
+   - 레이블은 리소스를 논리적인 그룹으로 구성
+   - 셀렉터는 레이블을 이용해 리소스를 선택
+   - 의미있는 레이블 키와 값을 사용
+
+4. **리소스 관리**
+   - 항상 리소스 요청(requests)과 제한(limits) 설정
+   - 메모리는 Mi(메비바이트) 또는 Gi(기비바이트) 단위 사용
+   - CPU는 m(밀리코어) 단위 사용 (1000m = 1 CPU)
+
+## 유용한 kubectl 명령어
+
+```bash
+# Manifest 파일 적용
+kubectl apply -f manifest.yaml
+
+# 리소스 상태 확인
+kubectl get -f manifest.yaml
+
+# Manifest 파일 유효성 검사
+kubectl validate -f manifest.yaml
+
+# 리소스 삭제
+kubectl delete -f manifest.yaml
+
+# 리소스 상세 정보 확인
+kubectl describe -f manifest.yaml
+```
+
+## Reference
+
+- [kimjingo 님 티스토리 블로그](https://kimjingo.tistory.com/126)
+- [omoknooni 님 개발 블로그](https://blog.omoknooni.me/87)

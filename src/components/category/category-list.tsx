@@ -2,11 +2,14 @@
 
 import * as React from "react"
 import Link from "next/link";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { CategoryDetail } from "@/config/types";
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider
+} from "@/components/ui/sidebar";
 
 export default function CategoryList({
   categories,
@@ -23,41 +26,36 @@ export default function CategoryList({
   };
 
   return (
-    <ScrollArea className="h-72 w-48 rounded-md border">
-      <div className="p-4">
-        <div className="">
-          <Link 
-            href="/blog" 
-            className={cn(
-              "block transition-colors py-1 px-2 rounded",
-              isRootBlogPath 
-                ? "text-primary font-medium bg-slate-400" 
-                : "hover:text-primary hover:bg-slate-400"
-            )}
-          >
-            All <span className="text-muted-foreground">({totalCount})</span>
-          </Link>
-        </div>
-        <Separator className="" />
-        {categories.map((category) => (
-          <React.Fragment key={category.category}>
-            <div>
-              <Link 
-                href={`/blog/${category.category}`} 
-                className={cn(
-                  "block transition-colors py-1 px-2 rounded",
-                  isCategoryActive(category.category) 
-                    ? "text-primary font-medium bg-slate-400" 
-                    : "hover:text-primary hover:bg-slate-400"
-                )}
-              >
-                {category.categoryName} <span className="text-muted-foreground">({category.postCount})</span>
+    <SidebarProvider>
+      <div className="rounded-md border border-input p-2">
+        <h3 className="px-3 py-2 text-lg font-semibold">Categories</h3>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isRootBlogPath}
+            >
+              <Link href="/blog">
+                All <span className="ml-auto text-muted-foreground">({totalCount})</span>
               </Link>
-            </div>
-            <Separator className="" />
-          </React.Fragment>
-        ))}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {categories.map((category) => (
+            <SidebarMenuItem key={category.category}>
+              <SidebarMenuButton
+                asChild
+                isActive={isCategoryActive(category.category)}
+              >
+                <Link href={`/blog/${category.category}`}>
+                  {category.categoryName}
+                  <span className="ml-auto text-muted-foreground">({category.postCount})</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
       </div>
-    </ScrollArea>
+    </SidebarProvider>
   );
 }
