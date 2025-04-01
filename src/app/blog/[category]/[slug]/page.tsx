@@ -1,10 +1,7 @@
 import { getPostByCategoryAndSlug } from "@/lib/mdx";
-import type { Metadata } from "next";
 import { getPostPaths, parsePostAbstract } from "@/lib/mdx";
 
 import PostContent from "@/components/post/post-content";
-
-
 
 export async function generateStaticParams() {
   const postPaths: string[] = getPostPaths();
