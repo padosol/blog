@@ -9,6 +9,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 export const metadata: Metadata = {
   title: "Padosol Blog - 개인 블로그",
   description: "Padosol 기술 블로그",
+  verification: {
+    google: '4_riABZ12h5sQRaEMSQxNZhHJa8WgsxPzX2aVUq8LaQ', 
+  },
 };
 
 export default function RootLayout({
