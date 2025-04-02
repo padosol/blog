@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { convertCategoryToDefault } from "@/lib/mdx";
 
-export default function PostList({posts, category}: {posts: Post[], category?: string | null}) {
+export default function PostList({posts}: {posts: Post[]}) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-10">
