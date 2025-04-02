@@ -29,7 +29,7 @@ export default async function PostListPage({
             {convertCategoryToDefault(category)}
           </h2>
         </div>
-        <PostList posts={posts} category={category}/>
+        <PostList posts={posts}/>
       </div>
     </div>
   );
