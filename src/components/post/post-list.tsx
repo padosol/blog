@@ -25,7 +25,7 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
               className="block transition-transform hover:scale-[1.01] focus:scale-[1.01]"
             >
               <Card className="hover:border-primary transition-colors overflow-hidden h-36 border-border">
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row h-full">
                   <div className="flex-1 flex flex-col">
                     <CardHeader>
                       <CardTitle className="group-hover:text-primary transition-colors text-foreground">{post.title}</CardTitle>
@@ -37,13 +37,14 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
                       <time dateTime={post.dateString} className="ml-2">{post.dateString}</time>
                     </CardFooter>
                   </div>
-                  <div className="md:w-1/4 relative flex items-center justify-center">
+                  <div className="relative w-full md:w-1/4 h-36">
                     <Image 
                       src={post.thumbnail}
                       alt={post.title}
                       className="object-cover"
                       fill
-                      sizes="24"
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      priority={false}
                     />
                   </div>
                 </div>

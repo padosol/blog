@@ -1,0 +1,21 @@
+---
+title: "Spring Cloud Config 적용"
+description: "Spring Cloud Conifg 를 적용하여 프로젝트에 종속되지 않은 Properties 파일을 관리해보도록 하겠습니다."
+date: "2025-04-01"
+thumbnail: /thumbnail/spring_cloud.png
+---
+
+MSA 로 프로젝트를 진행하다보면 jwt 의 secretKey 와 같이 중복된 Properties 를 설정해야하는 경우가 있습니다.
+만약 secretKey 가 변경되게 된다면, 모든 마이크로 서비스의 secretKey 를 수정해야하는 불상사가 발생하게 됩니다.
+
+이러한 불편함을 해결하기 위해 스프링 클라우드 에서는 Config 서버를 제공해 줍니다.
+
+
+## Spring Cloud Config 란?
+Spring Cloud Config는 분산 시스템에서 외부화된 설정 정보를 서버 및 클라이언트에게 제공하는 시스템이다. 
+설정 서버는(Config Server)는 외부에서 모든 환경에 대한 정보들을 관리해주는 중앙 서버이다. 
+기본적으로 설정 정보 저장을 위해 git을 사용하도록 되어있어서 손쉽게 외부 도구들로 접근 가능하고, 버전 관리도 가능하다.
+
+
+Spring Cloud Config 의 장단점은 다음과 같다.
+장점: 여러 설정파일을 중앙 서버에서 일괄적으로 관리할 수 있다.

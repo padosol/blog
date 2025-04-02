@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/config/provider/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
@@ -33,6 +33,7 @@ export default function RootLayout({
         </ThemeProvider>
         <SpeedInsights />
         <GoogleAnalytics gaId="G-3DTT6CGCG8" />
+        <GoogleTagManager gtmId="G-3DTT6CGCG8" />
       </body>
     </html>
   );
