@@ -16,7 +16,6 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold mb-6 text-foreground">{convertCategoryToDefault(category)}</h2>
       <ul className="space-y-6">
         {posts.map((post) => (
           <li key={post.slug}>
@@ -25,10 +24,10 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
               className="block transition-transform hover:scale-[1.01] focus:scale-[1.01]"
             >
               <Card className="hover:border-primary transition-colors overflow-hidden h-36 border-border">
-                <div className="flex flex-col md:flex-row h-full">
-                  <div className="flex-1 flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="group-hover:text-primary transition-colors text-foreground">{post.title}</CardTitle>
+                <div className="flex h-full">
+                  <div className="flex-1 flex flex-col justify-between">
+                    <CardHeader className="flex-none">
+                      <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-foreground">{post.title}</CardTitle>
                     </CardHeader>
                     <CardFooter className="flex items-center text-sm text-muted-foreground">
                       <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
@@ -37,13 +36,13 @@ export default function PostList({posts, category}: {posts: Post[], category?: s
                       <time dateTime={post.dateString} className="ml-2">{post.dateString}</time>
                     </CardFooter>
                   </div>
-                  <div className="relative w-full md:w-1/4 h-36">
+                  <div className="relative w-1/3 md:w-1/4 h-full">
                     <Image 
                       src={post.thumbnail}
                       alt={post.title}
                       className="object-cover"
                       fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
+                      sizes="(max-width: 768px) 33vw, 25vw"
                       priority={false}
                     />
                   </div>
