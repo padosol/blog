@@ -7,6 +7,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeSlug from 'rehype-slug';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
+import rehypeCodeTitles from 'rehype-code-titles';
 
 import { Post } from "@/config/types";
 
@@ -27,20 +28,21 @@ export default function PostContent({
         options={{
           mdxOptions: {
             remarkPlugins: [
-              remarkGfm, 
-              remarkA11yEmoji, 
-              remarkBreaks
+              remarkGfm,        // github flavored markdown
+              remarkA11yEmoji,  // emoji
+              remarkBreaks     // 줄바꿈  
             ],
             rehypePlugins: [
               [
-                rehypePrettyCode,
+                rehypePrettyCode, // 코드 블록 스타일링
                 {
                   theme: "github-dark-dimmed"
                 },
               ],
-              rehypeSlug,
+              rehypeSlug,       // 제목에 앵커 링크 추가
+              rehypeCodeTitles, // 코드 블록에 제목 추가
             ],
-          }
+          },
         }}
       />
       <hr></hr>
