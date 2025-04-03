@@ -1,6 +1,7 @@
 # 기술 블로그
 
-Next.js 15, React 19, TypeScript, TailwindCSS로 구축된 현대적이고 반응형 기술 블로그입니다. MDX를 통한 콘텐츠 작성, 다크 모드, 깔끔한 미니멀 디자인을 제공합니다.
+Next.js 15, React 19, TypeScript, TailwindCSS로 구축된 반응형 기술 블로그입니다. 
+MDX를 통한 콘텐츠 작성, 다크 모드, 깔끔한 미니멀 디자인을 제공합니다.
 
 ## 주요 기능
 
@@ -16,11 +17,12 @@ Next.js 15, React 19, TypeScript, TailwindCSS로 구축된 현대적이고 반�
 ## 기술 스택
 
 - **프레임워크:** Next.js 15
-- **언어:** TypeScript
-- **스타일링:** TailwindCSS
-- **UI 컴포넌트:** Radix UI
+- **라이브러리:** React 19
+- **언어:** TypeScript 5
+- **스타일링:** TailwindCSS 4
+- **UI 컴포넌트:** Shadcn/ui, Radix UI
 - **콘텐츠:** MDX
-- **배포:** Vercel (권장)
+- **배포:** Vercel
 
 ## 시작하기
 
@@ -33,8 +35,8 @@ Next.js 15, React 19, TypeScript, TailwindCSS로 구축된 현대적이고 반�
 
 1. 저장소 클론:
 ```bash
-git clone [your-repo-url]
-cd my-blog
+git clone https://github.com/padosol/blog.git
+cd blog
 ```
 
 2. 의존성 설치:
@@ -53,12 +55,11 @@ pnpm dev
 
 ```
 ├── content/          # MDX 형식의 블로그 포스트
-├── public/           # 정적 자산
+├── public/           # 정적 자산, 블로그 이미지
 ├── src/
 │   ├── app/         # Next.js App Router 페이지
 │   ├── components/  # React 컴포넌트
 │   ├── lib/         # 유틸리티 함수
-│   └── styles/      # 전역 스타일
 └── ...
 ```
 
@@ -79,10 +80,3 @@ thumbnail: /path/to/thumbnail.jpg
 ---
 ```
 
-## 기여하기
-
-기여는 언제나 환영합니다! Pull Request를 자유롭게 제출해 주세요.
-
-## 라이선스
-
-이 프로젝트는 MIT 라이선스를 따릅니다 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
