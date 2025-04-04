@@ -19,6 +19,7 @@ export default function PostContent({
 }: {
   post: Post
 }) {
+
   return (
     <div className='prose dark:prose-invert max-w-full'>
       <PostHeader post={post} />

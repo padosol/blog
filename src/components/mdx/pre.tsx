@@ -1,7 +1,7 @@
 // Pre.tsx
 "use client";
+import { Check, Clipboard } from "lucide-react";
 import { useRef, useState } from "react";
-import { Clipboard, Check } from "lucide-react";
  
 interface PreProps {
   children?: React.ReactNode;
