@@ -1,9 +1,8 @@
-import { Post } from "@/config/types";
-import Link from "next/link";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Post } from "@/config/types";
 import { convertCategoryToDefault } from "@/lib/mdx";
+import Link from "next/link";
 
 export default function PostList({posts}: {posts: Post[]}) {
   if (posts.length === 0) {
@@ -15,37 +14,26 @@ export default function PostList({posts}: {posts: Post[]}) {
   }
 
   return (
-    <div className="space-y-8">
-      <ul className="space-y-6">
+    <div className="">
+      <ul className="space-y-5">
         {posts.map((post) => (
           <li key={post.slug}>
             <Link 
               href={post.url} 
               className="block transition-transform hover:scale-[1.01] focus:scale-[1.01]"
             >
-              <Card className="hover:border-primary transition-colors overflow-hidden h-36 border-border">
-                <div className="flex h-full">
-                  <div className="flex-1 flex flex-col justify-between">
-                    <CardHeader className="flex-none">
-                      <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-foreground">{post.title}</CardTitle>
-                    </CardHeader>
-                    <CardFooter className="flex items-center text-sm text-muted-foreground">
-                      <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
-                        {convertCategoryToDefault(post.category)}
-                      </Badge>
-                      <time dateTime={post.dateString} className="ml-2">{post.dateString}</time>
-                    </CardFooter>
-                  </div>
-                  <div className="relative w-1/3 md:w-1/4 h-full">
-                    <Image 
-                      src={post.thumbnail}
-                      alt={post.title}
-                      className="object-cover"
-                      fill
-                      sizes="(max-width: 768px) 33vw, 25vw"
-                      priority={false}
-                    />
-                  </div>
+              <Card className="hover:border-primary transition-colors border-border h-auto p-1">
+                <div className="flex flex-col h-full">
+                  <CardHeader className="flex-none">
+                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-foreground">{post.title}</CardTitle>
+                    <CardDescription className="line-clamp-2 text-muted-foreground mt-2">{post.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="flex items-center justify-between text-sm">
+                    <time dateTime={post.dateString} className="text-muted-foreground">{post.dateString}</time>
+                    <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+                      {convertCategoryToDefault(post.category)}
+                    </Badge>
+                  </CardFooter>
                 </div>
               </Card>
             </Link>

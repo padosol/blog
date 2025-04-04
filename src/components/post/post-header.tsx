@@ -1,7 +1,7 @@
 import { Post } from "@/config/types";
-import Link from "next/link";
-import { CalendarDays, Clock3, MoveLeft } from "lucide-react";
 import { convertCategoryToDefault } from "@/lib/mdx";
+import { CalendarDays, Clock3 } from "lucide-react";
+import Link from "next/link";
 
 interface PostHeaderProps {
   post: Post
@@ -12,8 +12,7 @@ export default function PostHeader({post}: PostHeaderProps) {
     <header className='mt-14 text-center'>
       <h1 className='mb-8 text-3xl'>{post.title}</h1>
       <div className='flex justify-between items-center'>
-        <div className='text-base flex items-center hover:scale-105 cursor-pointer transition delay-100'>
-          <MoveLeft className="w-3.5"/>
+        <div className='text-base flex items-center hover:underline cursor-pointer transition delay-100'>
           <Link
             href={`/blog/${post.category}`}
             className='ml-2 font-semibold no-underline'

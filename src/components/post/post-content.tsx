@@ -3,16 +3,16 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 
 // @ts-expect-error no types
 import remarkA11yEmoji from '@fec/remark-a11y-emoji';
+import rehypeCodeTitles from 'rehype-code-titles';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeSlug from 'rehype-slug';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-import rehypeCodeTitles from 'rehype-code-titles';
 
 import { Post } from "@/config/types";
 
-import { MdxComponents } from "@/components/mdx";
 import Giscus from "@/components/git/Giscus";
+import { MdxComponents } from "@/components/mdx";
 
 export default function PostContent({
   post

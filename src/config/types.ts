@@ -3,7 +3,7 @@ export interface PostMatter {
   date: Date;
   dateString: string;
   thumbnail: string;
-  desc: string;
+  description: string;
 }
 
 export interface Post extends PostMatter {

@@ -1,11 +1,10 @@
 "use client"
 
-import * as React from "react"
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { CategoryDetail } from "@/config/types";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CategoryDetail } from "@/config/types";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 export default function CategoryList({
   categories,
