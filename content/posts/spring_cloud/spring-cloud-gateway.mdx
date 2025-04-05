@@ -1,0 +1,520 @@
+---
+title: "Spring Cloud 로 MSA 개발 - 2. Spring Cloud Gateway"
+description: "Spring Cloud Gateway 를 통해 API Gateway 를 구현해보도록 하겠습니다."
+date: "2025-04-05"
+thumbnail: /thumbnail/spring_cloud.png
+category: "spring_cloud"
+---
+
+# 개요
+마이크로 서비스 아키텍처 (MSA) 에서 각 서비스의 URL 과 Port 를 알아야 할까요?
+우리는 앞서 Eureka Server 에 서비스를 등록해둔 상태 입니다.
+따라서 URL 과 Port 번호를 알지 못해도 서비스의 이름을 통해 API 를 호출할 수 있습니다.
+이번 포스팅에서는 Spring Cloud Gateway 를 통해 서비스 라우팅을 해보도록 하겠습니다.
+
+# 1. API Gateway란?
+
+API Gateway는 클라이언트와 백엔드 서비스 사이에 위치하는 중간 계층으로, 모든 API 요청의 단일 진입점 역할을 합니다.
+
+## 주요 기능
+- **라우팅**: 클라이언트 요청을 적절한 서비스로 전달
+- **인증/인가**: 사용자 인증 및 권한 검증 처리
+- **로드 밸런싱**: 요청을 여러 서비스 인스턴스에 분산
+- **캐싱**: 응답 캐싱으로 성능 향상
+- **요청/응답 변환**: 데이터 형식 변환
+- **속도 제한(Rate Limiting)**: API 호출 제한
+- **모니터링/로깅**: 트래픽 모니터링 및 로깅
+- **서킷 브레이커**: 장애 전파 방지
+
+## API Gateway 사용 이점
+- 클라이언트 코드 단순화
+- 보안 강화
+- 내부 서비스 구조 은닉
+- 횡단 관심사(Cross-cutting concerns) 중앙화
+- 마이크로서비스 아키텍처 필수 요소
+
+# 2. Spring Cloud Gateway란?
+
+Spring Cloud Gateway는 Spring 생태계에서 제공하는 API Gateway 구현체로, Spring WebFlux와 Project Reactor를 기반으로 한 비동기 논블로킹 아키텍처를 제공합니다.
+
+## 주요 특징
+- **비동기 논블로킹 I/O**: 높은 동시성과 확장성 제공
+- **Spring WebFlux 기반**: 리액티브 프로그래밍 모델 사용
+- **Route 기반 설계**: 조건부 라우팅 규칙 정의 가능
+- **Predicate와 Filter**: 유연한 요청 처리 및 변환
+- **Spring Boot 통합**: 간편한 설정 및 배포
+- **Spring Cloud 생태계 호환**: 다른 Spring Cloud 컴포넌트와 통합 용이
+
+## 핵심 개념
+- **Route**: 게이트웨이의 기본 빌딩 블록으로 ID, 목적지 URI, Predicate 모음, Filter 모음으로 구성
+- **Predicate**: 요청이 특정 조건을 만족하는지 확인하는 함수
+- **Filter**: 요청과 응답을 수정할 수 있는 컴포넌트
+
+# 3. Spring Cloud Gateway 사용방법
+
+## 1. 기본 의존성 설정 (build.gradle)
+```gradle
+
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+}
+```
+
+### 기본 application.yml 구성
+
+Spring Cloud Gateway 는 Class 기반 과 yml 기반으로 라우팅 정보를 입력할 수 있습니다.
+저는 먼저 yml 파일을 통해 작성해보도록 하겠습니다.
+
+
+```yaml
+
+server:
+  port: 8000
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        ## FIRST-SERVICE
+        - id: first-service
+          uri: lb://FIRST-SERVICE
+          predicates:
+            - Path=/user-service/*
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/first-service/(?<segment>.*), /$\{segment}
+```
+
+이렇게만 설정하면 바로 API-Gateway 를 사용하실 수 있습니다.
+
+Eureka Server 에 gateway 가 정상적으로 등록되었습니다.
+
+![](/posts/spring_cloud/gateway/eureka_gateway.png)
+
+이제 gateway 의 port 인 8000번을 통해
+이전에 등록해 주었던
+/api
+
+---
+
+
+
+
+## 4. Spring Cloud Filter 적용
+
+Spring Cloud Gateway는 다양한 내장 필터를 제공하여 요청과 응답을 변형할 수 있습니다.
+
+### 주요 내장 필터
+```yaml
+filters:
+  # 경로 관련
+  - StripPrefix=1                   # 경로에서 첫 번째 세그먼트 제거
+  - PrefixPath=/api                 # 경로 앞에 /api 추가
+  - RewritePath=/api/(?<segment>.*), /$\{segment}  # 경로 재작성
+  
+  # 헤더 관련
+  - AddRequestHeader=X-Request-Id, ${requestId}  # 요청 헤더 추가
+  - AddResponseHeader=X-Response-Time, ${responseTime}  # 응답 헤더 추가
+  - RemoveRequestHeader=X-Request-Foo  # 요청 헤더 제거
+  - RemoveResponseHeader=X-Response-Foo  # 응답 헤더 제거
+  
+  # 파라미터 관련
+  - AddRequestParameter=foo, bar    # 요청 파라미터 추가
+  
+  # 상태 코드 관련
+  - SetStatus=404                   # 응답 상태 코드 설정
+  
+  # 보안 관련
+  - name: RequestRateLimiter        # 요청 속도 제한
+    args:
+      redis-rate-limiter.replenishRate: 10
+      redis-rate-limiter.burstCapacity: 20
+  
+  # 회로 차단기
+  - name: CircuitBreaker
+    args:
+      name: myCircuitBreaker
+      fallbackUri: forward:/fallback
+  
+  # 재시도
+  - name: Retry
+    args:
+      retries: 3
+      statuses: BAD_GATEWAY
+      methods: GET,POST
+```
+
+### 필터 적용 예시
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/users/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Id, ${req.id}
+            - AddResponseHeader=X-Response-Time, ${response.time}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@userKeyResolver}"
+```
+
+## 5. Spring Cloud Custom Filter 적용
+
+내장 필터로 충분하지 않은 경우, 사용자 정의 필터를 구현할 수 있습니다.
+
+### GatewayFilter 구현
+```java
+@Component
+public class LoggingFilter implements GatewayFilter, Ordered {
+    
+    private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
+    
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        
+        // 요청 로깅
+        log.info("Request: {} {}", request.getMethod(), request.getURI());
+        request.getHeaders().forEach((name, values) -> {
+            values.forEach(value -> log.info("{}: {}", name, value));
+        });
+        
+        // 응답 필터링
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            ServerHttpResponse response = exchange.getResponse();
+            log.info("Response status: {}", response.getStatusCode());
+        }));
+    }
+    
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;  // 필터 실행 순서
+    }
+}
+```
+
+### GatewayFilterFactory 구현
+```java
+@Component
+public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<LoggingGatewayFilterFactory.Config> {
+    
+    private static final Logger log = LoggerFactory.getLogger(LoggingGatewayFilterFactory.class);
+    
+    public LoggingGatewayFilterFactory() {
+        super(Config.class);
+    }
+    
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            
+            if (config.isPreLogger()) {
+                log.info("Request: {} {}", request.getMethod(), request.getURI());
+            }
+            
+            return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                if (config.isPostLogger()) {
+                    ServerHttpResponse response = exchange.getResponse();
+                    log.info("Response status: {}", response.getStatusCode());
+                }
+            }));
+        };
+    }
+    
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList("preLogger", "postLogger");
+    }
+    
+    public static class Config {
+        private boolean preLogger;
+        private boolean postLogger;
+        
+        public boolean isPreLogger() {
+            return preLogger;
+        }
+        
+        public void setPreLogger(boolean preLogger) {
+            this.preLogger = preLogger;
+        }
+        
+        public boolean isPostLogger() {
+            return postLogger;
+        }
+        
+        public void setPostLogger(boolean postLogger) {
+            this.postLogger = postLogger;
+        }
+    }
+}
+```
+
+### 커스텀 필터 적용 (yml)
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/users/**
+          filters:
+            - StripPrefix=1
+            - name: Logging
+              args:
+                preLogger: true
+                postLogger: true
+```
+
+### 커스텀 필터 적용 (Java Config)
+```java
+@Configuration
+public class GatewayConfig {
+    
+    @Autowired
+    private LoggingFilter loggingFilter;
+    
+    @Bean
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+        return builder.routes()
+            .route("user-service", r -> r
+                .path("/users/**")
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .filter(loggingFilter))
+                .uri("http://localhost:8081"))
+            .build();
+    }
+}
+```
+
+## 6. Global Filter 적용
+
+모든 라우트에 적용되는 글로벌 필터를 구현할 수 있습니다.
+
+### GlobalFilter 구현
+```java
+@Component
+public class AuthenticationFilter implements GlobalFilter, Ordered {
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
+    
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        
+        // JWT 토큰 검증 예시
+        String token = getAuthToken(request);
+        if (token != null) {
+            if (isValidToken(token)) {
+                // 토큰에서 사용자 정보 추출
+                String userId = extractUserId(token);
+                
+                // 요청에 사용자 정보 추가
+                ServerHttpRequest mutatedRequest = request.mutate()
+                    .header("X-User-Id", userId)
+                    .build();
+                
+                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            } else {
+                // 유효하지 않은 토큰 처리
+                return onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+        }
+        
+        // 공개 경로 확인 (인증 필요 없는 경로)
+        if (isPublicPath(request.getPath().toString())) {
+            return chain.filter(exchange);
+        }
+        
+        // 인증 토큰 없음
+        return onError(exchange, "No auth token", HttpStatus.UNAUTHORIZED);
+    }
+    
+    private String getAuthToken(ServerHttpRequest request) {
+        List<String> authHeaders = request.getHeaders().get("Authorization");
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String authHeader = authHeaders.get(0);
+            if (authHeader.startsWith("Bearer ")) {
+                return authHeader.substring(7);
+            }
+        }
+        return null;
+    }
+    
+    private boolean isValidToken(String token) {
+        // JWT 토큰 검증 로직
+        return true; // 예시
+    }
+    
+    private String extractUserId(String token) {
+        // JWT 토큰에서 사용자 ID 추출
+        return "user123"; // 예시
+    }
+    
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/public") || 
+               path.startsWith("/auth") || 
+               path.equals("/");
+    }
+    
+    private Mono<Void> onError(ServerWebExchange exchange, String message, HttpStatus status) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(status);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        
+        byte[] bytes = ("{\"error\":\"" + message + "\"}").getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer));
+    }
+    
+    @Override
+    public int getOrder() {
+        return -1; // 높은 우선순위 (가장 먼저 실행)
+    }
+}
+```
+
+### application.yml에서 글로벌 필터 설정
+```yaml
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 5
+            redis-rate-limiter.burstCapacity: 10
+        - AddResponseHeader=X-Response-Default-Header, Default-Value
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY
+```
+
+## 7. Load Balancer
+
+Spring Cloud Gateway는 Spring Cloud LoadBalancer와 통합하여 클라이언트 측 로드 밸런싱을 제공합니다.
+
+### 의존성 추가
+```gradle
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'  // 서비스 디스커버리
+}
+```
+
+### 로드 밸런싱 설정
+```yaml
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE  # lb:// 접두사로 로드 밸런싱 활성화
+          predicates:
+            - Path=/users/**
+          filters:
+            - StripPrefix=1
+    loadbalancer:
+      ribbon:
+        enabled: false  # Spring Cloud LoadBalancer 사용
+      cache:
+        ttl: 5s  # 캐시 TTL 설정
+        capacity: 256  # 캐시 용량
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+```
+
+### 커스텀 로드 밸런서 설정
+```java
+@Configuration
+public class LoadBalancerConfig {
+    
+    @Bean
+    public ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
+            ReactiveDiscoveryClient discoveryClient,
+            Environment environment) {
+        
+        String serviceId = environment.getProperty("spring.application.name");
+        
+        return ServiceInstanceListSupplier.builder()
+                .withDiscoveryClient()
+                .withHealthChecks()  // 헬스 체크 추가
+                .withZonePreference()  // 영역 기반 라우팅
+                .withCaching()  // 캐싱 추가
+                .build(discoveryClient, serviceId);
+    }
+    
+    @Bean
+    public ReactorLoadBalancer<ServiceInstance> randomLoadBalancer(Environment environment,
+            LoadBalancerClientFactory loadBalancerClientFactory) {
+        String name = environment.getProperty("loadbalancer.client.name");
+        return new RandomLoadBalancer(loadBalancerClientFactory
+                .getLazyProvider(name, ServiceInstanceListSupplier.class),
+                name);
+    }
+}
+```
+
+### 로드 밸런싱 전략
+- **RoundRobinLoadBalancer**: 순차적으로 서비스 인스턴스 선택 (기본값)
+- **RandomLoadBalancer**: 무작위로 서비스 인스턴스 선택
+- **WeightedResponseTimeLoadBalancer**: 응답 시간에 따른 가중치 기반 선택
+
+## 8. 마무리
+
+Spring Cloud Gateway는 강력하고 유연한 API Gateway 솔루션으로, 마이크로서비스 아키텍처에서 중요한 역할을 담당합니다.
+
+### 주요 이점 요약
+- **비동기 논블로킹 아키텍처**: 높은 성능과 확장성
+- **Spring 생태계 통합**: Spring Boot, Spring Security, Spring Cloud와의 원활한 통합
+- **유연한 라우팅**: 다양한 Predicate와 Filter를 통한 세밀한 제어
+- **동적 라우팅**: 런타임에 라우트 추가/수정/삭제 가능
+- **클라이언트 측 로드 밸런싱**: 서비스 디스커버리와 통합
+
+### 모범 사례
+1. **적절한 필터 순서 설정**: 필터 실행 순서가 중요하므로 `Ordered` 인터페이스 활용
+2. **회로 차단기 패턴 적용**: 장애 전파 방지를 위한 Circuit Breaker 활용
+3. **속도 제한 구현**: 서비스 보호를 위한 Rate Limiting 적용
+4. **모니터링 및 로깅**: Actuator와 Micrometer를 통한 메트릭 수집
+5. **보안 강화**: Spring Security와 통합하여 인증/인가 구현
+6. **캐싱 전략**: 적절한 캐싱으로 성능 최적화
+7. **테스트 자동화**: 게이트웨이 라우팅 및 필터 테스트 자동화
+
+### 실제 운영 고려사항
+- **성능 모니터링**: 지연 시간, 처리량, 오류율 등 핵심 메트릭 모니터링
+- **로깅 전략**: 요청/응답 로깅을 위한 전략 수립 (샘플링, 필터링 등)
+- **확장성 계획**: 트래픽 증가에 따른 수평적 확장 계획
+- **장애 대응**: 장애 시나리오 및 대응 전략 수립
+- **보안 감사**: 정기적인 보안 취약점 검사
+
+Spring Cloud Gateway는 마이크로서비스 아키텍처의 복잡성을 관리하고, 클라이언트에게 일관된 API 경험을 제공하는 데 필수적인 도구입니다. 적절한 설계와 구성을 통해 확장 가능하고 안정적인 API 게이트웨이를 구축할 수 있습니다.
