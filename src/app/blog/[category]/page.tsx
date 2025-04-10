@@ -3,7 +3,7 @@ import { convertCategoryToDefault, getCategories } from "@/lib/mdx";
 import { Metadata } from "next";
 
 type Props = {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 };
 
 export async function generateStaticParams() {
@@ -13,7 +13,8 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params: { category } }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { category } = await params;
   const cg = convertCategoryToDefault(category);
   const title = `${cg} | Padosol`;
 
