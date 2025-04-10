@@ -1,0 +1,27 @@
+---
+title: "Docker logging driver 설정"
+description: "docker 의 logging driver 설정에 대해서 알아보도록 하겠습니다."
+date: "2025-04-08"
+category: "docker"
+---
+
+# 개요
+개인 노트북을 데이터베이스 서버로 사용중인데, 갑자기 서버가 다운되는 현상이 발생하였습니다.
+개인적으로 사용하는 거라 메모리가 부족할 일이 없는 상황이라 다른 원인을 찾아보았습니다.
+
+그러던중 docker 의 로그데이터가 끊임없이 쌓여 디스크 공간이 부족하여 서버가 다운된것임을 알게 되었습니다.
+
+# docker 의 기본 로깅 설정
+
+[](https://docs.docker.com/engine/logging/configure/)
+
+docker 공식 홈페이지에서는 docker 는 기본적으로 `json-file logging driver` 를 사용한다고 합니다.
+`json-file logging driver` 는 `log-rotation` 즉, 로그 파일을 분리해주는 기능이 없기 때문에 무한정 데이터가 쌓이게 됩니다.
+
+데이터가 하나의 파일에 계속 쌓이게 되면, 상당한 양의 디스크 공간을 사용하게 되어, 디스크 공간 소진으로 이어질 수 있습니다.
+
+공식 홈페이지에서도 디스크 공간 소진을 방지하기 위해 `local logging driver` 를 사용하라고 나와있습니다.
+
+
+
+

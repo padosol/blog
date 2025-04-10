@@ -1,11 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { Post, PostMatter } from '@/config/types';
+import { CategoryDetail, Post, PostMatter } from '@/config/types';
 import dayjs from 'dayjs';
-import readingTime from 'reading-time';
+import fs from 'fs';
 import { sync } from 'glob';
-import { CategoryDetail } from '@/config/types';
+import matter from 'gray-matter';
+import path from 'path';
+import readingTime from 'reading-time';
 
 const BASE_PATH = 'content/posts';
 const POSTS_PATH = path.join(process.cwd(), BASE_PATH);
@@ -65,7 +64,7 @@ export const getPostPaths = (category?: string) => {
 export const getPostList = async (category?: string): Promise<Post[]> => {
   const paths: string[] = getPostPaths(category);
   const posts = await Promise.all(paths.map((postPath) => parsePost(postPath)));
-  return posts;
+  return posts.sort((a, b) => dayjs(b.date).diff(dayjs(a.date)));
 };
 
 // 모든 카테고리 조회

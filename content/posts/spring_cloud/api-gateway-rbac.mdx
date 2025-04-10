@@ -5,9 +5,7 @@ date: "2025-03-17"
 thumbnail: /thumbnail/spring_cloud.png
 ---
 
-# API Gateway를 사용한 역할 기반 접근 제어(RBAC) 구현
-
-## 배경
+## 개요
 
 MSA(Microservice Architecture) 프로젝트를 진행하면서 사용자 역할(Role)에 따른 API 접근 제어가 필요했습니다. 구체적으로는 USER와 ADMIN 권한에 따라 특정 API의 사용 여부를 제어해야 했습니다.
 
@@ -36,7 +34,7 @@ public class SecurityConfig {
 }
 ```
 
-## 문제점
+### 문제점
 
 하지만 MSA 환경에서 Spring Security를 사용하면 다음과 같은 문제가 있습니다:
 
@@ -44,7 +42,7 @@ public class SecurityConfig {
 2. **유지보수 어려움**: 접근 제어 정책이 변경될 때 모든 서비스를 수정해야 함
 3. **일관성 유지 어려움**: 여러 서비스에 동일한 보안 정책을 적용하기 어려움
 
-## 해결책: API Gateway를 통한 중앙화된 RBAC
+### 해결책: API Gateway를 통한 중앙화된 RBAC
 
 이러한 문제를 해결하기 위해 API Gateway에서 RBAC(Role-Based Access Control)를 구현하기로 결정했습니다. 
 

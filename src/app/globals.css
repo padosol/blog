@@ -119,3 +119,7 @@ code::before {
 code::after {
   content: '';
 }
+
+h2, h3 {
+  scroll-margin-top: 5rem;
+}

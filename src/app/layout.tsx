@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
       <body>
         <ThemeProvider
           attribute="class"
@@ -29,8 +29,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <section className="mx-auto mt-8 w-full max-w-[850px] px-4">
-            <main className="flex flex-1 flex-col">{children}</main>
+          <section className="mt-16 flex flex-1 flex-col">
+            <main className="w-full mx-auto max-w-[850px]">{children}</main>
           </section>
           <Footer />
         </ThemeProvider>

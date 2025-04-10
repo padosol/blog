@@ -15,7 +15,7 @@ export const Footer = () => {
         </Link>
       </div>
       <div>
-        © 2024. <Link href='https://github.com/padosol' target='_blank' className='font-semibold hover:text-yellow-600 cursor-pointer'>Padosol</Link> all rights reserved.
+        © 2025. <Link href='https://github.com/padosol' target='_blank' className='font-semibold hover:text-yellow-600 cursor-pointer'>Padosol</Link> all rights reserved.
       </div>
     </footer>
   );

@@ -1,22 +1,22 @@
 ---
-title: "Spring Cloud 로 MSA 개발 - 2. Spring Cloud Gateway"
+title: "Spring Cloud Gateway"
 description: "Spring Cloud Gateway 를 통해 API Gateway 를 구현해보도록 하겠습니다."
 date: "2025-04-05"
 thumbnail: /thumbnail/spring_cloud.png
 category: "spring_cloud"
 ---
 
-# 개요
+## 개요
 마이크로 서비스 아키텍처 (MSA) 에서 각 서비스의 URL 과 Port 를 알아야 할까요?
 우리는 앞서 Eureka Server 에 서비스를 등록해둔 상태 입니다.
 따라서 URL 과 Port 번호를 알지 못해도 서비스의 이름을 통해 API 를 호출할 수 있습니다.
 이번 포스팅에서는 Spring Cloud Gateway 를 통해 서비스 라우팅을 해보도록 하겠습니다.
 
-# 1. API Gateway란?
+## 1. API Gateway란?
 
 API Gateway는 클라이언트와 백엔드 서비스 사이에 위치하는 중간 계층으로, 모든 API 요청의 단일 진입점 역할을 합니다.
 
-## 주요 기능
+### 주요 기능
 - **라우팅**: 클라이언트 요청을 적절한 서비스로 전달
 - **인증/인가**: 사용자 인증 및 권한 검증 처리
 - **로드 밸런싱**: 요청을 여러 서비스 인스턴스에 분산
@@ -26,18 +26,18 @@ API Gateway는 클라이언트와 백엔드 서비스 사이에 위치하는 중
 - **모니터링/로깅**: 트래픽 모니터링 및 로깅
 - **서킷 브레이커**: 장애 전파 방지
 
-## API Gateway 사용 이점
+### API Gateway 사용 이점
 - 클라이언트 코드 단순화
 - 보안 강화
 - 내부 서비스 구조 은닉
 - 횡단 관심사(Cross-cutting concerns) 중앙화
 - 마이크로서비스 아키텍처 필수 요소
 
-# 2. Spring Cloud Gateway란?
+## 2. Spring Cloud Gateway란?
 
 Spring Cloud Gateway는 Spring 생태계에서 제공하는 API Gateway 구현체로, Spring WebFlux와 Project Reactor를 기반으로 한 비동기 논블로킹 아키텍처를 제공합니다.
 
-## 주요 특징
+### 주요 특징
 - **비동기 논블로킹 I/O**: 높은 동시성과 확장성 제공
 - **Spring WebFlux 기반**: 리액티브 프로그래밍 모델 사용
 - **Route 기반 설계**: 조건부 라우팅 규칙 정의 가능
@@ -45,14 +45,14 @@ Spring Cloud Gateway는 Spring 생태계에서 제공하는 API Gateway 구현�
 - **Spring Boot 통합**: 간편한 설정 및 배포
 - **Spring Cloud 생태계 호환**: 다른 Spring Cloud 컴포넌트와 통합 용이
 
-## 핵심 개념
+### 핵심 개념
 - **Route**: 게이트웨이의 기본 빌딩 블록으로 ID, 목적지 URI, Predicate 모음, Filter 모음으로 구성
 - **Predicate**: 요청이 특정 조건을 만족하는지 확인하는 함수
 - **Filter**: 요청과 응답을 수정할 수 있는 컴포넌트
 
-# 3. Spring Cloud Gateway 사용방법
+## 3. Spring Cloud Gateway 사용방법
 
-## 1. 기본 의존성 설정 (build.gradle)
+### 1. 기본 의존성 설정 (build.gradle)
 ```gradle
 
 dependencies {
@@ -61,7 +61,7 @@ dependencies {
 }
 ```
 
-## 2. application.yml 구성
+### 2. application.yml 구성
 
 Spring Cloud Gateway 는 Class 기반 과 yml 기반으로 라우팅 정보를 입력할 수 있습니다.
 
@@ -95,7 +95,7 @@ spring:
             - RewritePath=/first-service/(?<segment>.*), /$\{segment}
 ```
 
-## 3. properties 설정 분석
+### 3. properties 설정 분석
 
 1. `spring.cloud.gateway.routes`
 - 라우팅 규칙을 정의하는 항목입니다. 라우팅 규칙들은 배열로 정의 됩니다.
@@ -126,7 +126,7 @@ spring:
 - 이를 통해 클라이언트는 단일 엔드포인트로 여러 마이크로서비스에 접근 할 수 있습니다.
 
 
-# 4. Spring Cloud Custom Filter 적용
+## 4. Spring Cloud Custom Filter 적용
 
 내장 필터로 충분하지 않은 경우, 사용자 정의 필터를 구현하여 적용할 수 있습니다.
 
@@ -201,7 +201,7 @@ spring:
             postLogger: true
 ```
 
-# 8. 마무리
+## 5. 마무리
 
 Spring Cloud Gateway는 강력하고 유연한 API Gateway 솔루션으로, 마이크로서비스 아키텍처에서 중요한 역할을 담당합니다.
 

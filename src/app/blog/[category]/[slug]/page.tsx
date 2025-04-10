@@ -1,7 +1,8 @@
-import { getPostByCategoryAndSlug } from "@/lib/mdx";
-import { getPostPaths, parsePostAbstract } from "@/lib/mdx";
+import { getPostByCategoryAndSlug, getPostPaths, parsePostAbstract } from "@/lib/mdx";
 
 import PostContent from "@/components/post/post-content";
+import TableOfContent from "@/components/toc/tableOfContentSidebar";
+import { parseToc } from "@/lib/toc";
 
 export async function generateStaticParams() {
   const postPaths: string[] = getPostPaths();
@@ -23,9 +24,13 @@ export default async function PostPage({
 }: PostPageProps) {
   const { category, slug } = await params;
   const post = await getPostByCategoryAndSlug(category, slug);
+  const toc = parseToc(post.content);
 
   return (
-    <PostContent post={post} />
+    <div className="relative">
+      <PostContent post={post} />
+      <TableOfContent toc={toc} />
+    </div>
   );
 } 
 

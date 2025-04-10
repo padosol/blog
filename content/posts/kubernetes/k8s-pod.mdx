@@ -1,0 +1,158 @@
+---
+title: "쿠버네티스 - 파드(Pod)"
+description: "쿠버네티스에서 파드로 백엔드 API 서버를 띄워보고, Pod 의 특징에 대해서 알아보겠습니다."
+date: "2025-04-09"
+category: "kubernetes"
+---
+
+## 파드 (Pod) 란?
+
+쿠버네티스에서는 하나의 프로그램을 실행 시키는 단위를 파드 라고 부릅니다.
+
+일반적으로 파드는 하나의 컨테이너를 가집니다.
+(예외적으로 하나의 파드가 여러개의 컨테이너를 가지는 경우도 있긴합니다.)
+
+
+파드 이미지
+컴퓨터 ---------------
+ㅣ  쿠버네티스
+ㅣ    파드
+ㅣ      컨테이너
+
+          
+쿠버네티스에서도 도커처럼 이미지를 기반으로 Pod 를 띄워 실행 시킵니다.
+
+## Nginx 를 사용하여 Pod 를 띄워보기
+파드를 생성할 때 `CLI` 를 활용하는 방법과 `yaml` 파일을 활용하는 방법이 있습니다.
+`yaml` 파일을 사용하는 것이 가독성과 활용성이 좋기 때문에 `yaml` 파일을 사용해서 `Pod` 를 띄워보도록 하겠습니다.
+
+`yaml` 파일 생성
+``` yaml
+apiVersion: v1 # pod 와 v1 는 한 묶음이다.
+kind: Pod
+
+metadata:
+  name: nginx-pod # pod 의 이름
+
+# pod 의 spec 을 정의한다.
+spec:
+  containers:
+  - name: nginx-container # container 의 이름
+    image: nginx # container 의 이미지
+    ports:
+    - containerPort: 80 # container 의 포트
+```
+
+다음 명령어를 통해 파드를 생성합니다.
+
+```shell
+kubectl apply -f nginx-pod.yaml
+```
+
+결과
+`pod/nginx-pod created`
+
+다음으로 `kubectl get pods` 명령어를 통해 pods 를 확인해보면 
+
+`nginx` 파드가 올라간것을 볼 수 있습니다.
+![](/posts/kubernetes/k8s-pod/get-pods.png) 
+
+
+그럼 `localhost:80` 을 통해 `nginx` 에 접근해보도록 하겠습니다.
+
+하지만 접속이 되지 않습니다.
+
+이는 `docker` 와 마찬가지로 `pod` 도 독립적으로 분리되어 있기 때문입니다.
+
+따라서 포트 포워딩을 통해 `port` 를 연결해주어야 합니다.
+
+
+포트 포워딩 명령어
+```shell
+sudo kubectl port-forward pod/nginx-pod 80:80
+```
+
+이제 정상적으로 실행된것을 보실 수 있습니다.
+
+
+## 스프링 부트 프로젝트를 Pod 로 띄우기
+
+스프링 부트로 `Pod` 를 띄우는 순서는 다음과 같습니다.
+
+1. 스프링 부트 프로젝트 build -> 
+2. 도커 이미지 생성 -> 
+3. manifest 파일 작성 -> 
+4. 쿠버네티스 실행
+
+프로젝트 빌드 및 도커 이미지 생성후 `manifest` 파일을 다음과 같이 작성해 주었습니다.
+
+``` yaml
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: lol-server-pod
+
+spec:
+  containers:
+    - name: lol-server-container
+      image: lol-server:latest
+      ports:
+        - containerPort: 8085
+```
+
+이후 Pod 생성 명령어를 실행하게 되면, 
+이때 `ImagePullBackOff`, 이미지가 없다는 문구가 나옵니다.
+
+![](/posts/kubernetes/k8s-pod/image-pull-back-off.png)
+
+분명 도커 이미지가 생성된 것을 확인했는데 왜그런걸까요?
+
+## 이미지 `Pull` 정책
+
+쿠버네티스는 이미지 풀 정책에 대해서 정의해 두었습니다.
+
+### 이미지 풀 정책 이란? 
+
+쿠버네티스가 yaml 파일을 읽어들여 파드를 생성할 때, 이미지를 어떤 방식으로 가져올건지에 대한 정책을 의미합니다.
+
+이미지 풀 정책의 종류는 다음과 같습니다.
+
+1. `Always`
+로컬이미지를 가져오지 않고, 무조건 DockerHub나 ECR 과 같은 저장소에서 가져오는것을 뜻합니다.
+
+2. `IfNotPresent`
+로컬에서 이미지를 가져옵니다. 이떄 로컬에 이미지가 없는 경우 레지스트리에서 가져옵니다.
+
+3. `Never`
+로컬에서만 이미지를 가져옵니다.
+
+이미지 정책을 작성하지 않았을때 이미지 정책은 아래와 같은 방식으로 동작합니다.
+- 이미지 태그가 `latest` 이거나 명시되어있지 않은 경우: `imagePullPolicy` 는 `Always` 로 설정됨
+- 이미지 태그가 `latest` 가 아닌 경우: `imagePullPolicy` 는 `IfNotPresent` 로 설정됨
+
+따라서 위에서 작성한 `manifest` 파일은 첫번째 경우이기 때문에 `Always` 로 정책이 생성된 것입니다.
+
+그럼 방금 작성한 `manifest` 파일에 이미지 정책을 사용해보도록 하겠습니다.
+
+
+이미지 정책 `manifest` 파일
+``` yaml
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: lol-server-pod
+
+spec:
+  containers:
+    - name: lol-server-container
+      image: lol-server:latest
+      ports:
+        - containerPort: 8100
+      imagePullPolicy: IfNotPresent  # 추가항목
+```
+
+이제 정상적으로 백엔드 서버가 올라간것을 확인하실 수 있습니다.
+
+![](/posts/kubernetes/k8s-pod/running-pod.png)
