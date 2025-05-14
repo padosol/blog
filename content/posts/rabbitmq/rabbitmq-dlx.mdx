@@ -74,11 +74,11 @@ DLX 를 통해 처리되지 못한 메시지를 파악할 수 있으면 재시�
 DLX 의 프로세스는 다음과 같습니다.
 
 1. 어떠한 이유로 메시지가 소실되었다.
-2. 이떄 해당 queue 에 설정한 argument 에 의해 매칭된 exchange 에 해당 메시지를 보내게 된다.
-3. exchange 는 해당 메시지를 binding 된 queue 에 전달하게 된다.
-4. 해당 queue 를 수신하는 listen 가 메시지를 다시 처리하게 된다.
+2. 이때 해당 `queue` 에 설정한 `argument` 에 의해 매칭된 `exchange` 에 해당 메시지를 보내게 된다.
+3. `exchange` 는 해당 메시지를 `binding` 된 `queue` 에 전달하게 된다.
+4. 해당 `queue` 를 수신하는 `listener` 가 메시지를 다시 처리하게 된다.
 
-### 적용 결과
+## 적용 결과
 
 ![Exchange](/posts/rabbitmq/dlx/exchange_list.png)
 
