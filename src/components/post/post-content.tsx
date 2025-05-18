@@ -21,7 +21,7 @@ export default function PostContent({
 }) {
 
   return (
-    <div className='prose dark:prose-invert max-w-full'>
+    <div className='prose dark:prose-invert max-w-full px-4'>
       <PostHeader post={post} />
       <MDXRemote 
         source={post.content} 

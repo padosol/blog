@@ -3,7 +3,6 @@ import PostList from "@/components/post/post-list";
 import { Post } from "@/config/types";
 import { getCategories, getPostList } from "@/lib/mdx";
 import { CategoryToggle } from "./post-list-page.client";
-
 export default async function PostListPage({
   category
 }: {
@@ -20,9 +19,9 @@ export default async function PostListPage({
       </div>
 
       {/* Posts Content with Margin */}
-      <div className="md:ml-[230px]">
+      <div className="md:ml-[230px] px-4">
         <div className="sticky z-10 flex items-center gap-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-5">
-          <div className="md:hidden">
+          <div className="md:hidden pt-4">
             <CategoryToggle categories={categories} />
           </div>
         </div>
