@@ -24,8 +24,11 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const post = await getPostByCategoryAndSlug(category, slug);
   const title = `${post.title} | Padosol`;
 
+  const description = post.content.replace(/#/g, '').replace(/\n/g, ' ').replace(/ /g, '').slice(0, 170) + '...';
+
   return {
     title,
+    description,
   };
 }
 
