@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/config/provider/theme-provider";
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
+import { Inter } from 'next/font/google';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,13 +15,17 @@ export const metadata: Metadata = {
   },
 };
 
+const inter = Inter({
+  subsets: ['latin'],
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="ko" className={`${inter.className} scroll-smooth`} suppressHydrationWarning>
       <body>
         <ThemeProvider
           attribute="class"
