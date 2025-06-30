@@ -1,0 +1,295 @@
+---
+title: "헥사고날 아키텍처 프로젝트 예시 with NestJs"
+description: "헥사고날 아키텍처에 대한 프로젝트 예시 입니다. NestJs 프레임워크를 통해 간단하게 작성해 보았습니다."
+date: "2025-06-30"
+category: "nest"
+---
+
+# 헥사고날 아키텍처(Hexagonal Architecture) 프로젝트 예시
+
+## 개요
+
+헥사고날 아키텍처는 **포트와 어댑터 패턴(Ports and Adapters Pattern)**이라고도 불리며, 비즈니스 로직을 외부 의존성으로부터 격리시키는 아키텍처 패턴입니다. 이 글에서는 실제 NestJS 프로젝트를 기반으로 각 레이어의 구성요소와 구현 방법을 자세히 살펴보겠습니다.
+
+## 헥사고날 아키텍처의 4개 레이어
+
+### 1. Domain Layer (도메인 계층)
+
+도메인 계층은 비즈니스 로직의 핵심으로, 외부 의존성이 전혀 없는 순수한 계층입니다.
+
+#### 1.1 Domain Model (도메인 모델)
+비즈니스 도메인의 핵심 객체입니다.
+
+```typescript
+// src/alarms/domain/alarm.ts
+import { AlarmSeverity } from './value-object/alarm-severity';
+
+export class Alarm {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly severity: AlarmSeverity,
+  ) {}
+}
+```
+
+#### 1.2 Value Object (값 객체)
+변경 불가능한 값들을 표현하는 객체입니다.
+
+```typescript
+// src/alarms/domain/value-object/alarm-severity.ts
+export class AlarmSeverity {
+  constructor(public readonly value: 'critical' | 'high' | 'medium' | 'low') {}
+
+  equals(severity: AlarmSeverity): boolean {
+    return this.value === severity.value;
+  }
+}
+```
+
+#### 1.3 Factory (팩토리)
+복잡한 객체 생성 로직을 캡슐화합니다.
+
+```typescript
+// src/alarms/domain/factories/alarm.factory.ts
+import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { Alarm } from '../alarm';
+import { AlarmSeverity } from '../value-object/alarm-severity';
+
+@Injectable()
+export class AlarmFactory {
+  create(name: string, severity: string) {
+    const alarmId = randomUUID();
+    const alarmSeverity = new AlarmSeverity(severity as AlarmSeverity['value']);
+
+    return new Alarm(alarmId, name, alarmSeverity);
+  }
+}
+```
+
+### 2. Application Layer (애플리케이션 계층)
+
+애플리케이션 계층은 유스케이스를 구현하고, 도메인 객체들을 조율합니다.
+
+#### 2.1 Service (서비스)
+비즈니스 유스케이스를 구현하는 핵심 로직입니다.
+
+```typescript
+// src/alarms/application/alarms.service.ts
+import { Injectable } from '@nestjs/common';
+import { AlarmFactory } from '../domain/factories/alarm.factory';
+import { CreateAlarmCommand } from './commands/create-alarm.command';
+import { AlarmRepository } from './ports/alarm.repository';
+
+@Injectable()
+export class AlarmsService {
+  constructor(
+    private readonly alarmRepository: AlarmRepository,
+    private readonly alarmFactory: AlarmFactory,
+  ) {}
+
+  create(createAlarmCommand: CreateAlarmCommand) {
+    const alarm = this.alarmFactory.create(
+      createAlarmCommand.name,
+      createAlarmCommand.severity,
+    );
+    return this.alarmRepository.save(alarm);
+  }
+
+  findAll() {
+    return this.alarmRepository.findAll();
+  }
+}
+```
+
+#### 2.2 Command (명령)
+유스케이스에 필요한 데이터를 전달하는 객체입니다.
+
+```typescript
+// src/alarms/application/commands/create-alarm.command.ts
+export class CreateAlarmCommand {
+  constructor(
+    public readonly name: string,
+    public readonly severity: string,
+  ) {}
+}
+```
+
+#### 2.3 Ports (포트)
+외부 시스템과의 인터페이스를 정의합니다.
+
+```typescript
+// src/alarms/application/ports/alarm.repository.ts
+import { Alarm } from '../../domain/alarm';
+
+export abstract class AlarmRepository {
+  abstract findAll(): Promise<Alarm[]>;
+  abstract save(alarm: Alarm): Promise<Alarm>;
+}
+```
+
+### 3. Persistence Layer (영속성 계층)
+
+Persistence 계층은 데이터베이스와의 실제 상호작용을 담당합니다.
+
+#### 3.1 ORM Persistence (ORM 영속성)
+데이터베이스와의 상호작용을 담당합니다.
+
+```typescript
+// src/alarms/infrastructure/persistence/orm/entities/alarm.entity.ts
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('alarms')
+export class AlarmEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  severity: string;
+}
+```
+
+```typescript
+// src/alarms/infrastructure/persistence/orm/repository/alarm.repository.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AlarmRepository } from '../../../../application/ports/alarm.repository';
+import { Alarm } from '../../../../domain/alarm';
+import { AlarmEntity } from '../entities/alarm.entity';
+import { AlarmMapper } from '../mappers/alarm.mapper';
+
+@Injectable()
+export class OrmAlarmRepository implements AlarmRepository {
+  constructor(
+    @InjectRepository(AlarmEntity)
+    private readonly alarmRepository: Repository<AlarmEntity>,
+  ) {}
+
+  async findAll(): Promise<Alarm[]> {
+    const alarmEntities = await this.alarmRepository.find();
+    return alarmEntities.map((alarmEntity) =>
+      AlarmMapper.toDomain(alarmEntity),
+    );
+  }
+
+  async save(alarm: Alarm): Promise<Alarm> {
+    const alarmEntity = AlarmMapper.toPersistence(alarm);
+    const savedAlarmEntity = await this.alarmRepository.save(alarmEntity);
+    return AlarmMapper.toDomain(savedAlarmEntity);
+  }
+}
+```
+
+#### 3.2 Mapper (매퍼)
+도메인 객체와 영속성 객체 간의 변환을 담당합니다.
+
+```typescript
+// src/alarms/infrastructure/persistence/orm/mappers/alarm.mapper.ts
+import { Alarm } from '../../../../domain/alarm';
+import { AlarmSeverity } from '../../../../domain/value-object/alarm-severity';
+import { AlarmEntity } from '../entities/alarm.entity';
+
+export class AlarmMapper {
+  static toDomain(alarmEntity: AlarmEntity): Alarm {
+    const alarmSeverity = new AlarmSeverity(
+      alarmEntity.severity as 'critical' | 'high' | 'medium' | 'low',
+    );
+
+    return new Alarm(alarmEntity.id, alarmEntity.name, alarmSeverity);
+  }
+
+  static toPersistence(alarm: Alarm): AlarmEntity {
+    return new AlarmEntity(alarm.id, alarm.name, alarm.severity.value);
+  }
+}
+```
+
+### 4. Presenters Layer (프레젠터 계층)
+
+프레젠터 계층은 사용자나 외부 시스템과의 인터페이스를 담당합니다.
+
+#### 4.1 Controller (컨트롤러)
+HTTP 요청을 처리하는 엔드포인트입니다.
+
+```typescript
+// src/alarms/presenters/http/alarms.controller.ts
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { AlarmsService } from '../../application/alarms.service';
+import { CreateAlarmCommand } from '../../application/commands/create-alarm.command';
+import { CreateAlarmDto } from './dto/create-alarm.dto';
+
+@Controller('alarms')
+export class AlarmsController {
+  constructor(private readonly alarmsService: AlarmsService) {}
+
+  @Post()
+  create(@Body() createAlarmDto: CreateAlarmDto) {
+    return this.alarmsService.create(
+      new CreateAlarmCommand(createAlarmDto.name, createAlarmDto.severity),
+    );
+  }
+
+  @Get()
+  findAll() {
+    return this.alarmsService.findAll();
+  }
+}
+```
+
+#### 4.2 DTO (Data Transfer Object)
+외부와의 데이터 전송을 위한 객체입니다.
+
+```typescript
+// src/alarms/presenters/http/dto/create-alarm.dto.ts
+export class CreateAlarmDto {
+  name: string;
+  severity: string;
+}
+```
+
+## 헥사고날 아키텍처의 핵심 장점
+
+### 1. 의존성 역전 (Dependency Inversion)
+- 고수준 모듈(도메인, 애플리케이션)이 저수준 모듈(영속성)에 의존하지 않습니다.
+- 포트(인터페이스)를 통해 의존성이 역전됩니다.
+
+### 2. 테스트 용이성
+- 각 계층을 독립적으로 테스트할 수 있습니다.
+- 인메모리 DB 등 다양한 Persistence 구현을 쉽게 추가할 수 있습니다.
+
+### 3. 유연성
+- 데이터베이스, 프레임워크, 외부 API 등을 쉽게 교체할 수 있습니다.
+- 비즈니스 로직은 외부 변화에 영향을 받지 않습니다.
+
+### 4. 확장성
+- 새로운 Persistence를 추가하기 쉽습니다.
+- 마이크로서비스로의 전환이 용이합니다.
+
+## 실제 적용 예시
+
+이 프로젝트에서는 `driver` 옵션을 통해 Persistence를 선택할 수 있습니다:
+
+```typescript
+// main.ts
+const app = await NestFactory.create(
+  AppModule.register({ driver: 'orm' }), // ORM 기반 Persistence
+);
+```
+
+## 결론
+
+헥사고날 아키텍처는 복잡한 비즈니스 로직을 가진 애플리케이션에서 유지보수성과 확장성을 크게 향상시킵니다. 각 계층의 명확한 분리와 포트를 통한 의존성 역전은 테스트 용이성과 유연성을 보장합니다.
+
+실제 프로젝트에서는 이러한 구조를 통해 비즈니스 요구사항의 변화에 빠르게 대응할 수 있으며, 기술 스택의 변경에도 안정적으로 대응할 수 있습니다. 
+
+전체 소스코드는 Github 에서 보실 수 있습니다.
+
+[https://github.com/padosol/hexagonal-example](https://github.com/padosol/hexagonal-example)
+
+## 참고
+[https://www.youtube.com/watch?v=ROF4k6lxNZs](https://www.youtube.com/watch?v=ROF4k6lxNZs)

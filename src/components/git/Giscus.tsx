@@ -1,6 +1,6 @@
 "use client"
-import { useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useRef } from "react";
 
 export default function Giscus() {
   const ref = useRef<HTMLDivElement>(null);
