@@ -8,16 +8,19 @@ category: "kubernetes"
 ## Pod (파드)
 
 ### 파드 조회
-``` shell
+
+```shell
 $ kubectl get pods
 ```
 
 ### 파트 포트 포워딩
-``` shell
+
+```shell
 $ kubectl port-forward pod/[파드명] [로컬 포트]:[파트 포트]
 ```
 
 ### 파드 삭제
+
 ```
 & kubectl delete pod [파드명]
 ```
@@ -25,24 +28,29 @@ $ kubectl port-forward pod/[파드명] [로컬 포트]:[파트 포트]
 ### 파드 디버깅
 
 #### 1. 파드 세부 정보 조회
+
 ```shell
 $ kubectl describe pods [파드명]
 ```
 
 #### 2. 파드 로그 확인
-``` shell
+
+```shell
 $ kubectl logs [파드명]
 ```
 
 #### 3. 파드 내부 접속
-``` shell
+
+```shell
 $ kubectl exec -it [파드명] -- bash
 ```
-``` shell
+
+```shell
 $ kubectl exec -it [파드명] -- sh
 ```
 
 ### 리소스 생성
+
 ```shell
 $ kubectl apply -f [파일명]
 ```
